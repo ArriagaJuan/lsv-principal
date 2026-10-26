@@ -11,6 +11,16 @@ La aplicación permite adquirir lecturas de velocidad de un sensor LSV mediante 
 - Desfase temporal manual y conservación del tiempo bruto de las lecturas.
 - Modo Simulación con datos sintéticos, identificado en los registros.
 
+## Equipos y componentes incluidos
+
+| Equipo o componente | Función disponible | Forma de uso |
+| --- | --- | --- |
+| Sensor LSV | Lectura de velocidad por RS232 o TCP y cálculo de distancia por integración de las muestras. | Interfaz principal, mediante **Conectar LSV**. |
+| Arduino Uno con TTL V1 | Generación de pulsos en D12 y D10, consulta de estado y reinicio de salidas; el firmware también incluye buzzer en D13. | Interfaz principal o interfaz independiente del trigger. |
+| Hentschel 373 | Captura serie de bytes con marcas temporales y almacenamiento en JSONL. | Herramienta independiente `capturar_hentschel_373.py`. |
+| Agilent/Keysight 33220A | Consulta de identificación mediante VISA con el comando `*IDN?`. | Clase auxiliar `Agilent33220A` de `agilent_33220a.py`. |
+
+La adquisición LSV y el trigger Arduino forman parte de la interfaz principal. Las herramientas Hentschel y Agilent se utilizan por separado, con el alcance descrito en sus apartados.
 ## Requisitos
 
 - Windows y Python 3.11 o 3.12 con pip y soporte para entornos virtuales.
@@ -70,6 +80,23 @@ Para consultar el estado del Arduino, utilice **Consultar Arduino (sin disparar)
 
 Sustituya el puerto y los baudios por los parámetros del instrumento. La captura Hentschel es independiente de la interfaz principal; conserva los bytes recibidos sin interpretarlos ni incorporarlos a las mediciones LSV.
 
+## Identificación auxiliar Agilent/Keysight 33220A
+
+`agilent_33220a.py` permite abrir un recurso VISA y consultar la identificación del generador Agilent/Keysight 33220A. Requiere `pyvisa`, incluido en `requirements_opcionales.txt`, y un backend VISA compatible con la interfaz de conexión.
+
+La clase se utiliza desde Python con el nombre de recurso correspondiente al instrumento:
+
+```python
+from agilent_33220a import Agilent33220A
+
+generador = Agilent33220A("GPIB0::10::INSTR")
+try:
+    print(generador.connect_readonly())
+finally:
+    generador.close()
+```
+
+Sustituya `GPIB0::10::INSTR` por el recurso VISA de la instalación. Esta herramienta consulta `*IDN?`; no configura frecuencia, amplitud ni salida del generador y funciona de manera independiente de la interfaz LSV.
 ## Herramientas auxiliares
 
 Para instalar las dependencias opcionales:
@@ -80,7 +107,12 @@ Para instalar las dependencias opcionales:
 
 - `graficas.py`: genera gráficas PNG de velocidad y distancia desde un Excel exportado. Uso: `.\.venv\Scripts\python.exe graficas.py medicion.xlsx`.
 - `agilent_33220a.py`: proporciona una clase para consultar la identificación del generador mediante VISA. Requiere un backend VISA compatible con la conexión utilizada.
-- `calculos.py`: incluye conversiones y estadísticas auxiliares.
+- `calculos.py`: convierte frecuencia de eventos de una rueda a velocidad en km/h a partir del diámetro y las marcas por vuelta, y calcula estadísticas de velocidad.
+- `measurements.py`: proporciona conversión de unidades, promedio móvil, integración de distancia y revisión de continuidad de muestras. La aplicación utiliza su integración de distancia; las demás funciones están disponibles para uso desde Python.
+- `synchronization.py`: ofrece funciones auxiliares de alineación temporal y estimación de desfase desde series de distancia. La interfaz principal utiliza el desfase manual indicado por el usuario.
+- `modo_prueba_sin_gui.py`: genera un Excel con datos sintéticos sin abrir la interfaz gráfica. Uso: `.\.venv\Scripts\python.exe modo_prueba_sin_gui.py`.
+- `diagnostico_arduino.py`: consulta el reconocimiento y estado del trigger. Uso: `.\.venv\Scripts\python.exe diagnostico_arduino.py COM6`, con el puerto correspondiente.
+- `PRUEBAS.bat`: ejecuta las pruebas automatizadas incluidas en `tests`.
 
 ## Configuración y archivos generados
 
