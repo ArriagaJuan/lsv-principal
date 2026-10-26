@@ -1,0 +1,9 @@
+"""Valores observados en la grabación de 2026-10-20; no son una certificación de protocolo."""
+LASER_BAUDRATE = 9600
+DEFAULT_LSV_HOST = "192.168.1.100"
+DEFAULT_LSV_PORT = 10001
+DEFAULT_DAQ_MODE = 252
+DEFAULT_DAQ_DIVISOR = 16  # 1024 / 16 = 64 muestras por segundo (aprox.)
+LASER_RESPONSE_DELAY_SECONDS = 0.15
+MIN_SERIAL_SAMPLE_PERIOD_SECONDS = 0.5
+LASER_STARTUP_SECONDS = 5.0
